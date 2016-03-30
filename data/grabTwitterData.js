@@ -1,0 +1,1533 @@
+var axios = require('axios')
+var cheerio = require('cheerio')
+var Twit = require('twit')
+var Firebase = require('firebase')
+var T = new Twit({
+    consumer_key: 'FMSK9QFcKFuPGBhIbBgrgw',
+    consumer_secret: 'DSUWicq7x9hyxQf4sv0zyz1B2HXyzc52hWRq9AI',
+    access_token: '1567312298-2sAbMVRcLt1Q6I6UpbhbGMd0un4nisEPhXfPLor',
+    access_token_secret: 'uERv7jo91Ei0QsEticj9ba0KUQNIodu79lEJmC51k',
+    timeout_ms: 60 * 1000, // optional HTTP request timeout to apply to all requests.
+})
+var startups = [
+{
+    "facebook": "http://www.facebook.com/blockchain",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1405912341/cv6pyqnqiguauqa3pypn.png",
+    "linkedin": "http://www.linkedin.com/company/blockchain",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1411596440/tvodylxininmebun8vna.png",
+    "totalAmountRaised": "$30M",
+    "twitter": "blockchain"
+},
+ {
+    "facebook": "http://www.facebook.com/Coinbase",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1412112697/hyugaimnbpwya9qhxnmd.png",
+    "linkedin": "http://www.linkedin.com/company/coinbase",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1449482641/iuqglzcxmhuslkuo6etl.png",
+    "totalAmountRaised": "$106.71M",
+    "twitter": "coinbase"
+}, {
+    "facebook": "http://www.facebook.com/coindesk",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1398956507/v7xqouwubpw9onl46npa.png",
+    "linkedin": "http://www.linkedin.com/company/coindesk",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1402921817/fnw9lnwgxqgrwb6kari7.png",
+    "totalAmountRaised": "",
+    "twitter": "CoinDesk"
+}, {
+    "facebook": "http://facebook.com/BitPayOfficial",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1433526761/hapsxblppl4crqd0ep0c.jpg",
+    "linkedin": "http://linkedin.com/company/bitpay-inc-",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1398453955/zfljbezgzhufrinzdaeb.png",
+    "totalAmountRaised": "$32.51M",
+    "twitter": "bitpay"
+}, {
+    "facebook": "http://www.facebook.com/BitcoinFoundation",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1428389121/tfsgihm2f69afum1sm15.png",
+    "linkedin": "http://www.linkedin.com/company/bitcoin-foundation",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1410011112/vla8yf8wht8zzknkgrid.jpg",
+    "totalAmountRaised": "",
+    "twitter": "btcfoundation"
+}, {
+    "facebook": "",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1450471541/snjt9nsyt2epqrvrg3yr.jpg",
+    "linkedin": "https://www.linkedin.com/company/digital-currency-group?trk=company_logo",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1436824143/lcqnzv9zyaqm6k9mddbj.jpg",
+    "totalAmountRaised": "",
+    "twitter": "DCGco"
+}, {
+    "facebook": "",
+    "founder": "",
+    "linkedin": "https://www.linkedin.com/company/unicorn-pay-inc",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1447076652/fe97vleqyvqcjjd6e3ls.png",
+    "totalAmountRaised": "",
+    "twitter": "unicornpay"
+}, {
+    "facebook": "https://www.facebook.com/ChangeTip",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1397185509/eb31b51c2a37c73897c4e6840ede4611.jpg",
+    "linkedin": "https://www.linkedin.com/company/changetip",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1451340353/sheap0xsq6mey8ycccbd.png",
+    "totalAmountRaised": "$8.16M",
+    "twitter": "changetip"
+}, {
+    "facebook": "http://www.facebook.com/ripplelabs",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1411058431/z7akdmxzv5afj4ip2msv.jpg",
+    "linkedin": "http://www.linkedin.com/company/ripple-labs",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1444329436/y2x1ib7bwmg358sm7v7m.png",
+    "totalAmountRaised": "$38.6M",
+    "twitter": "ripple"
+}, {
+    "facebook": "http://www.facebook.com/xapoapp",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1404899269/k5brh9p7c57eyanaxkts.png",
+    "linkedin": "http://www.linkedin.com/company/xapo",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1407971461/xpsskwbzjzv5ckusjysd.png",
+    "totalAmountRaised": "$40M",
+    "twitter": "Xapo"
+}, {
+    "facebook": "http://www.facebook.com/stellarfoundation",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1397187287/cfebf215dea0b8b7cdf86a32a57fb413.jpg",
+    "linkedin": "https://www.linkedin.com/company/3877937",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1406838693/ndh2fsbqfra4jrfgaies.png",
+    "totalAmountRaised": "$3.06M",
+    "twitter": "stellarorg"
+}, {
+    "facebook": "https://www.facebook.com/blockchaincapital",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1415822617/bbibqyh02aqbtsdcggay.jpg",
+    "linkedin": "https://www.linkedin.com/company/crypto-currency-partners-lp",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1432676335/jkrickpbffk69slww6e1.jpg",
+    "totalAmountRaised": "",
+    "twitter": "blockchaincap"
+}, {
+    "facebook": "http://www.facebook.com/Blockstream",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1447809204/kvmx5nvbhhgznxzdvdxr.jpg",
+    "linkedin": "http://www.linkedin.com/company/blockstream",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1451339785/yujb67hzue5zrtckcqif.png",
+    "totalAmountRaised": "$76M",
+    "twitter": "Blockstream"
+}, {
+    "facebook": "https://www.facebook.com/coinify/",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1454927132/ryzv8uds0ty2rniahyqz.jpg",
+    "linkedin": "https://www.linkedin.com/company/coinify",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1444844410/u9jgvu6tvtkvph7xadxh.png",
+    "totalAmountRaised": "Undisclosed Amount",
+    "twitter": "coinify"
+}, {
+    "facebook": "http://www.facebook.com/itbitwelcome",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1412955760/wl65o8ievhyttfv7akm6.jpg",
+    "linkedin": "http://www.linkedin.com/company/itbit-pte-ltd",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1442852427/mgbk3tp2efk5sy4uiddd.png",
+    "totalAmountRaised": "$28.25M",
+    "twitter": "itBit"
+}, {
+    "facebook": "http://www.facebook.com/bitgoinc",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1402996437/obs3ac0fofvlludlexg7.jpg",
+    "linkedin": "http://www.linkedin.com/company/bitgo-inc-",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1397754336/430f7506bb721a84de8ec9bee47adef5.png",
+    "totalAmountRaised": "$12M",
+    "twitter": "BitGo"
+}, {
+    "facebook": "http://www.facebook.com/yourbtcc",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1432014421/jjkeqj6wshppm1a7cf0x.png",
+    "linkedin": "http://www.linkedin.com/company/yourbtcc",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1444457115/i5cwhunzxdevs9mhiyfl.png",
+    "totalAmountRaised": "$5M",
+    "twitter": "yourbtcc"
+}, {
+    "facebook": "",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1426024038/fgeao5ybgktnrcvswuca.jpg",
+    "linkedin": "http://www.linkedin.com/company/pantera-capital",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1423591704/raj6tz9m7tuchfa1ppnd.png",
+    "totalAmountRaised": "",
+    "twitter": "PanteraCapital"
+}, {
+    "facebook": "http://www.facebook.com/CoinJar",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1419914288/ux6effz4otarkdgehv7y.jpg",
+    "linkedin": "http://www.linkedin.com/company/coinjar",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1413246299/gngow3g1m2ctryn7iqho.png",
+    "totalAmountRaised": "$474.55k",
+    "twitter": "GetCoinJar"
+}, {
+    "facebook": "https://www.facebook.com/btcmediallc",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1436483258/i5ei4ghnxrdgmolxbo9v.jpg",
+    "linkedin": "https://www.linkedin.com/company/btc-media",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1436482294/b5lil5e2czx2oani6uqr.png",
+    "totalAmountRaised": "Undisclosed Amount",
+    "twitter": "yBitcoin"
+}, {
+    "facebook": "http://www.facebook.com/robocoinkiosk",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1423805235/anqk6ycnynimf42layde.jpg",
+    "linkedin": "https://www.linkedin.com/company/robocoin-technologies",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1411694131/qyjwqcyoeuvalfjr9uvr.png",
+    "totalAmountRaised": "$125k",
+    "twitter": "robocoin"
+}, {
+    "facebook": "http://www.facebook.com/GoCoiner",
+    "founder": "/assets/cb-default-image-98x98-ebacd75729c4c3620011e69a21ec8918.png",
+    "linkedin": "http://www.linkedin.com/company/gocoin",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1398228511/iwwnpvr49t58it8bohy8.png",
+    "totalAmountRaised": "$2.05M",
+    "twitter": "gocoiner"
+}, {
+    "facebook": "http://www.facebook.com/btc.sx",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1410514146/b0qy1ked9dmoztoindhf.jpg",
+    "linkedin": "http://www.linkedin.com/company/btc-sx",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1397180847/3e9e48fd96a6d1464afe5ea52ebd44ba.png",
+    "totalAmountRaised": "$450k",
+    "twitter": "BTCsx"
+}, {
+    "facebook": "http://www.facebook.com/bitcoinshopus",
+    "founder": "/assets/cb-default-image-98x98-ebacd75729c4c3620011e69a21ec8918.png",
+    "linkedin": "https://www.linkedin.com/company/bitcoinshop-us",
+    "logo": "",
+    "totalAmountRaised": "",
+    "twitter": "bitcoinshopus"
+}, {
+    "facebook": "http://www.facebook.com/coinprism",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1427261984/pozbpgktewiz9tor54jo.jpg",
+    "linkedin": "https://www.linkedin.com/company/5326014?trk=tyah&trkInfo=clickedVertical%3Acompany%2Cidx%3A1-1-1%2CtarId%3A1427261777650%2Ctas%3A+Coinprism",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1399725319/cx25yqcbc8vilx0j7npx.png",
+    "totalAmountRaised": "",
+    "twitter": "coinprism"
+}, {
+    "facebook": "http://www.facebook.com/bitpesaltd",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1423669566/smvfhzsrs4qs3f5hggou.png",
+    "linkedin": "https://www.linkedin.com/company/bitpesa",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1459173326/uguenqf2z3gvcybr0fta.jpg",
+    "totalAmountRaised": "$1.1M",
+    "twitter": "bitpesa"
+}, {
+    "facebook": "http://www.facebook.com/coinkite",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1397184516/a26b858f4048067547ffd3d877d315ce.png",
+    "linkedin": "http://www.linkedin.com/company/3216208",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1397180387/7471c118d8e787bb17d58bafe955f820.png",
+    "totalAmountRaised": "$121.75k",
+    "twitter": "Coinkite"
+}, {
+    "facebook": "http://www.facebook.com/gemhq",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1409771436/qwbsje7c38t2jsusdlpc.jpg",
+    "linkedin": "http://www.linkedin.com/company/gem-hq",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1410200505/jpflgz3yr4nfcdemwrf1.png",
+    "totalAmountRaised": "$12M",
+    "twitter": "gemhq"
+}, {
+    "facebook": "http://www.facebook.com/BitFury",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1432270214/rhhegusdhxz6tcgzuzvh.jpg",
+    "linkedin": "http://www.linkedin.com/company/bitfury",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1402099591/hcuxryydreoisqoujryw.png",
+    "totalAmountRaised": "$60M",
+    "twitter": "BitFuryGroup"
+}, {
+    "facebook": "http://www.facebook.com/Coinfloor",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1403783999/cd2el33l0mxuiddrssno.png",
+    "linkedin": "http://www.linkedin.com/company/coinfloor-limited",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1414001518/c4xcohy7iltkx6agg0a1.png",
+    "totalAmountRaised": "$491.94k",
+    "twitter": "coinfloor"
+}, {
+    "facebook": "http://www.facebook.com/AlphaPointLive",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1426260700/m3gtdwajaoztlzzwj8om.jpg",
+    "linkedin": "http://www.linkedin.com/company/alpha-point",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1397191292/f4ab0019005c107b81dc75bdaf99d94c.png",
+    "totalAmountRaised": "$1.35M",
+    "twitter": "AlphaPointLive"
+}, {
+    "facebook": "http://www.facebook.com/CoinBeyond",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1421413254/ywgcewaqszojsvlkykkg.jpg",
+    "linkedin": "http://www.linkedin.com/company/coinbeyond",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1438728296/gnxzzurwbsancps7skma.png",
+    "totalAmountRaised": "",
+    "twitter": "CoinBeyond"
+}, {
+    "facebook": "http://facebook.com/lawnmowerio",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1432636766/stdwntzebswy4stfcetc.png",
+    "linkedin": "http://linkedin.com/company/lawnmower",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1458057250/rppulernnnqe97yiwg82.png",
+    "totalAmountRaised": "Undisclosed Amount",
+    "twitter": "lawnmowerio"
+}, {
+    "facebook": "http://www.facebook.com/P2PBTCJam",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1424472959/q5pqcwptt5jkwwjupzv5.jpg",
+    "linkedin": "http://www.linkedin.com/company/btcjam",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1443126507/idu1ctdw4uwwz7xoa1uy.png",
+    "totalAmountRaised": "$9.2M",
+    "twitter": "btcjam"
+}, {
+    "facebook": "",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1397181652/689b972fb54bf2682985aef85a3e62b8.png",
+    "linkedin": "https://www.linkedin.com/company/21dotco",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1426031113/ijo2ihrlnhnvpgo7iuby.png",
+    "totalAmountRaised": "$121.05M",
+    "twitter": "21"
+}, {
+    "facebook": "",
+    "founder": "/assets/cb-default-image-98x98-ebacd75729c4c3620011e69a21ec8918.png",
+    "linkedin": "",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1397194222/d2709d21738dac051c7f5d1cd0beea55.jpg",
+    "totalAmountRaised": "$326k",
+    "twitter": "charityengine"
+}, {
+    "facebook": "",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1436483080/iaeg2qaoohm8wkbpqxua.jpg",
+    "linkedin": "",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1436481313/hwt45bn6agqbutp7njhr.png",
+    "totalAmountRaised": "",
+    "twitter": "BitcoinMagazine"
+}, {
+    "facebook": "",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1453145207/gmieot6oznksfb3roypx.png",
+    "linkedin": "",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1432644579/p1pd7dmwbiv8w5rm55de.jpg",
+    "totalAmountRaised": "$54.92k",
+    "twitter": "moneytis"
+}, {
+    "facebook": "",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1439471876/pccy4hyzsdqydnioz4qu.png",
+    "linkedin": "",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1397751744/a4afe6421406b5560ced5c37b02db1b4.png",
+    "totalAmountRaised": "$10M",
+    "twitter": "Bitstamp"
+}, {
+    "facebook": "",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1456692371/sxbx11mqxsg8b7vkmb6m.png",
+    "linkedin": "",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1400262886/efvbhoibla1tm6aasgmh.png",
+    "totalAmountRaised": "$76M",
+    "twitter": "CircleApp"
+}, {
+    "facebook": "",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1402039144/ojzzmvmd0dosgnh4omtx.jpg",
+    "linkedin": "",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1397753520/390b4dc7497d8b528b944fd2bbe240d0.png",
+    "totalAmountRaised": "$2.3M",
+    "twitter": "paystand"
+}, {
+    "facebook": "",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1435740513/rb8dzrs2dtj0ratyjefb.jpg",
+    "linkedin": "",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1433250888/aryes1xnxrqax20fqloj.png",
+    "totalAmountRaised": "$2.5M",
+    "twitter": "coluplatform"
+}, {
+    "facebook": "",
+    "founder": "",
+    "linkedin": "",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1412955450/i8i49n7dwdbqizffxcib.png",
+    "totalAmountRaised": "",
+    "twitter": "BitcoinTrust"
+}, {
+    "facebook": "",
+    "founder": "/assets/cb-default-image-98x98-ebacd75729c4c3620011e69a21ec8918.png",
+    "linkedin": "",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1411195790/itjs5tybkqyuospdr0fb.png",
+    "totalAmountRaised": "$10M",
+    "twitter": "okcoinbtc"
+}, {
+    "facebook": "",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1424366240/bb0c3h28jk6viupie53i.png",
+    "linkedin": "",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1424366094/nlky7crj08iv0lze1yi2.png",
+    "totalAmountRaised": "$1.48M",
+    "twitter": "LedgerHQ"
+}, {
+    "facebook": "",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1397181851/4e4b8b46ec6ba2d6aaff82fcac7efd4a.jpg",
+    "linkedin": "",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1425288691/ekmye7bercc3scbzww7a.jpg",
+    "totalAmountRaised": "$7M",
+    "twitter": "elliptic"
+}, {
+    "facebook": "",
+    "founder": "",
+    "linkedin": "",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1401410429/fegjb8z5qala20e8o9fr.png",
+    "totalAmountRaised": "$1.37M",
+    "twitter": "coinzone"
+}, {
+    "facebook": "",
+    "founder": "",
+    "linkedin": "",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1429635282/ni6kpcfhke0vvvptohle.png",
+    "totalAmountRaised": "$6.05M",
+    "twitter": "filamenthq"
+}, {
+    "facebook": "",
+    "founder": "",
+    "linkedin": "",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1425019953/lsugb7jpsu1equvthdnn.png",
+    "totalAmountRaised": "$100k",
+    "twitter": "satoshi_citadel"
+}, {
+    "facebook": "",
+    "founder": "",
+    "linkedin": "",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1427396065/ejbssrcxhdemgskxjzkb.png",
+    "totalAmountRaised": "$393k",
+    "twitter": "gli_ph"
+}, {
+    "facebook": "",
+    "founder": "",
+    "linkedin": "",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1420776227/c7w3volwbzdlrs1zqked.png",
+    "totalAmountRaised": "$450k",
+    "twitter": "airbitz"
+}, {
+    "facebook": "",
+    "founder": "",
+    "linkedin": "",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1421698549/uxqbnw4hhgaeco4nkwtz.jpg",
+    "totalAmountRaised": "$2M",
+    "twitter": "bitexla"
+}, {
+    "facebook": "",
+    "founder": "",
+    "linkedin": "",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1411668948/fryacshuyv8xtcy0z92a.png",
+    "totalAmountRaised": "$11M",
+    "twitter": "BitAccess"
+},
+ {
+    "facebook": "",
+    "founder": "",
+    "linkedin": "",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1431099807/kddy6snftxrwseicz93c.png",
+    "totalAmountRaised": "",
+    "twitter": "CoinCorner"
+}, {
+    "facebook": "",
+    "founder": "",
+    "linkedin": "",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1425864390/rsiokitt0v3veekofdxq.jpg",
+    "totalAmountRaised": "Undisclosed Amount",
+    "twitter": "digitaltangible"
+}, {
+    "facebook": "",
+    "founder": "",
+    "linkedin": "",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1408370573/kc54hr4usjlptheixd4e.png",
+    "totalAmountRaised": "$12.5M",
+    "twitter": "aligncommerce"
+}, {
+    "facebook": "",
+    "founder": "",
+    "linkedin": "",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1428692838/rtyagqew4ulehsy8mu1t.png",
+    "totalAmountRaised": "$250k",
+    "twitter": "volabit"
+}, {
+    "facebook": "",
+    "founder": "",
+    "linkedin": "",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1448490144/f5wphyswcqmrjjji0h1k.png",
+    "totalAmountRaised": "$305.36k",
+    "twitter": "LoanbaseInc"
+}, {
+    "facebook": "",
+    "founder": "",
+    "linkedin": "",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1416005949/o0aq73obcnppkkalhyuy.png",
+    "totalAmountRaised": "$750k",
+    "twitter": "bitwage"
+}, {
+    "facebook": "",
+    "founder": "",
+    "linkedin": "",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1398858619/huxk2p2bf6sicsqsj3q4.png",
+    "totalAmountRaised": "$14.5M",
+    "twitter": "bitnettech"
+}, {
+    "facebook": "",
+    "founder": "",
+    "linkedin": "",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1410945444/ra8uznqd40eumoc6wbc1.png",
+    "totalAmountRaised": "$3.52M",
+    "twitter": "KorbitBTC"
+}, {
+    "facebook": "",
+    "founder": "",
+    "linkedin": "",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1450868496/i3nfs0rnegy7vh8u9ja9.png",
+    "totalAmountRaised": "Undisclosed Amount",
+    "twitter": "CryptoCompare"
+}, {
+    "facebook": "",
+    "founder": "",
+    "linkedin": "",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1427249069/uazrk3juceuktbgcffdq.png",
+    "totalAmountRaised": "",
+    "twitter": "NA"
+}, {
+    "facebook": "",
+    "founder": "",
+    "linkedin": "",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1447806213/fukfmbydpuecnshatjxx.png",
+    "totalAmountRaised": "$6.5M",
+    "twitter": "Krakenfx"
+}, {
+    "facebook": "",
+    "founder": "",
+    "linkedin": "",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1418300843/zymf1wrkftfwfmf4whjf.jpg",
+    "totalAmountRaised": "$1.13M",
+    "twitter": "zebpay"
+}, {
+    "facebook": "",
+    "founder": "",
+    "linkedin": "",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1437170877/bg12rnoakjwndqm3xlye.png",
+    "totalAmountRaised": "$2.39M",
+    "twitter": "ShapeShift_io"
+}, {
+    "facebook": "",
+    "founder": "",
+    "linkedin": "",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1432452245/upbwouqmupmhqleckztz.png",
+    "totalAmountRaised": "$328k",
+    "twitter": "archcoin"
+}, {
+    "facebook": "",
+    "founder": "",
+    "linkedin": "",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1413007245/duurxidqfs26lqtvpvah.png",
+    "totalAmountRaised": "",
+    "twitter": "WalletTec"
+}, {
+    "facebook": "",
+    "founder": "",
+    "linkedin": "",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1410882718/oikylppftommh8t8xko9.png",
+    "totalAmountRaised": "$4.45M",
+    "twitter": "joinsnapcard"
+}, {
+    "facebook": "",
+    "founder": "",
+    "linkedin": "",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1427065738/ffcxzyvnj5rvwjbqblfv.png",
+    "totalAmountRaised": "$300k",
+    "twitter": "SurBTC"
+}, {
+    "facebook": "",
+    "founder": "",
+    "linkedin": "",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1425963267/qsmbzwk80nzj8rkmhius.png",
+    "totalAmountRaised": "Undisclosed Amount",
+    "twitter": "btcxindia"
+}, {
+    "facebook": "",
+    "founder": "",
+    "linkedin": "",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1458319612/aosxch0m91dnt3if7vtn.png",
+    "totalAmountRaised": "$3M",
+    "twitter": "SolidXPartners"
+}, {
+    "facebook": "",
+    "founder": "",
+    "linkedin": "",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1441780331/hlljd1ni3eulmzxkmpfc.png",
+    "totalAmountRaised": "$43.7M",
+    "twitter": "chain"
+}, {
+    "facebook": "",
+    "founder": "",
+    "linkedin": "",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1457812895/qwxy4xxix6nxse9wcus5.jpg",
+    "totalAmountRaised": "$3.13M",
+    "twitter": "owlting"
+}, {
+    "facebook": "",
+    "founder": "",
+    "linkedin": "",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1400172474/rkd4kxqxz15pzjj11q26.jpg",
+    "totalAmountRaised": "Undisclosed Amount",
+    "twitter": "bitsoex"
+}, {
+    "facebook": "",
+    "founder": "",
+    "linkedin": "",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1457118072/vedz3ixsck0faphslyge.png",
+    "totalAmountRaised": "$1M",
+    "twitter": "openbazaar"
+}, {
+    "facebook": "",
+    "founder": "",
+    "linkedin": "",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1433953119/xunjs5yye9qqzb4osnxm.png",
+    "totalAmountRaised": "$1.45M",
+    "twitter": "onename"
+}, {
+    "facebook": "",
+    "founder": "",
+    "linkedin": "",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1423759590/ltbbuxyj4glbtpt2tc59.jpg",
+    "totalAmountRaised": "$50k",
+    "twitter": "bitcoincoid"
+}, {
+    "facebook": "",
+    "founder": "",
+    "linkedin": "",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1432126648/ljoi0yznpslnibgqjfiv.jpg",
+    "totalAmountRaised": "$183.29k",
+    "twitter": "tabtraderbtc"
+}, {
+    "facebook": "",
+    "founder": "",
+    "linkedin": "",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1403802430/k0tcfm7jlrsj8jusuepp.png",
+    "totalAmountRaised": "",
+    "twitter": "yacunaltd"
+}, {
+    "facebook": "",
+    "founder": "",
+    "linkedin": "",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1405360911/j7y7xv0l8yo3k94owfk4.png",
+    "totalAmountRaised": "$4.5M",
+    "twitter": "gowiper"
+}, {
+    "facebook": "",
+    "founder": "",
+    "linkedin": "",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1444531239/vtq6xnjxthbycnjtpwzp.png",
+    "totalAmountRaised": "Undisclosed Amount",
+    "twitter": "getkeza"
+}, {
+    "facebook": "",
+    "founder": "",
+    "linkedin": "",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1426777277/fvdg0mnb7cdbwlrxjfk7.png",
+    "totalAmountRaised": "$8M",
+    "twitter": "simplexcc"
+}, {
+    "facebook": "",
+    "founder": "",
+    "linkedin": "",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1397182142/e98d55af51f578300f1137968d7bb56a.png",
+    "totalAmountRaised": "$1.83M",
+    "twitter": "BitPagos"
+}, {
+    "facebook": "",
+    "founder": "",
+    "linkedin": "",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1429199289/dlweq0881jxtdjrflpbx.png",
+    "totalAmountRaised": "",
+    "twitter": "OneTraction"
+}, {
+    "facebook": "",
+    "founder": "",
+    "linkedin": "",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1421411941/ngda3w4hfdlyxqfowubf.png",
+    "totalAmountRaised": "",
+    "twitter": "Palarin_Inc"
+}, {
+    "facebook": "",
+    "founder": "",
+    "linkedin": "",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1453202397/b28wcvmirafk2za2rl37.jpg",
+    "totalAmountRaised": "$110.18k",
+    "twitter": "clipperz"
+}, {
+    "facebook": "",
+    "founder": "",
+    "linkedin": "",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1397192039/ffc46a057aa53153d530fd8a8aef2347.png",
+    "totalAmountRaised": "",
+    "twitter": "Cliq_Start"
+}, {
+    "facebook": "",
+    "founder": "",
+    "linkedin": "",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1447425610/zz6lwjt5mltkenb5pygy.jpg",
+    "totalAmountRaised": "$2M",
+    "twitter": "ascribeIO"
+}, {
+    "facebook": "",
+    "founder": "",
+    "linkedin": "",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1426773140/ztv6olo6gdrf6yjfd0pz.jpg",
+    "totalAmountRaised": "$30k",
+    "twitter": "BitNexo"
+}, {
+    "facebook": "",
+    "founder": "",
+    "linkedin": "",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1428363449/lcgweofkqru9rshqreoh.png",
+    "totalAmountRaised": "$4.7M",
+    "twitter": "augurproject"
+}, {
+    "facebook": "",
+    "founder": "",
+    "linkedin": "",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1401434126/svmbttirxrhcimps1hnw.jpg",
+    "totalAmountRaised": "$525k",
+    "twitter": "37coins"
+}, {
+    "facebook": "",
+    "founder": "",
+    "linkedin": "",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1416126129/vv8desnaaouxbpzndpdv.png",
+    "totalAmountRaised": "$12.8M",
+    "twitter": "mirrorhq"
+}, {
+    "facebook": "",
+    "founder": "",
+    "linkedin": "",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1397185233/46af40b2894706bcaa6d2e5a481f76ef.jpg",
+    "totalAmountRaised": "$1.22M",
+    "twitter": "mobbrcom"
+}, {
+    "facebook": "",
+    "founder": "",
+    "linkedin": "",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1455308850/ql4hrklycw2xi3q5phjl.jpg",
+    "totalAmountRaised": "$2.2M",
+    "twitter": "ShiftPayments"
+}, {
+    "facebook": "",
+    "founder": "",
+    "linkedin": "",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1426570325/gixfsnbd6pjohrevrbev.jpg",
+    "totalAmountRaised": "",
+    "twitter": "DunveganSpace"
+}, {
+    "facebook": "",
+    "founder": "",
+    "linkedin": "",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1453829970/esoiv2ifku6lvhnbjsx3.png",
+    "totalAmountRaised": "$1.3M",
+    "twitter": "purseio"
+}, {
+    "facebook": "",
+    "founder": "",
+    "linkedin": "",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1422338896/dnh4jzrfqhdnehfuqieo.jpg",
+    "totalAmountRaised": "",
+    "twitter": "ihbio"
+}, {
+    "facebook": "",
+    "founder": "",
+    "linkedin": "",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1398882016/iug4bk7vsxesnrmohcne.jpg",
+    "totalAmountRaised": "$300k",
+    "twitter": "monetsutech"
+}, {
+    "facebook": "http://www.facebook.com/CharityEngine",
+    "founder": "/assets/cb-default-image-98x98-ebacd75729c4c3620011e69a21ec8918.png",
+    "linkedin": "",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1397194222/d2709d21738dac051c7f5d1cd0beea55.jpg",
+    "totalAmountRaised": "$326k",
+    "twitter": "charityengine"
+}, {
+    "facebook": "https://www.facebook.com/BitcoinMagazine",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1436483080/iaeg2qaoohm8wkbpqxua.jpg",
+    "linkedin": "",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1436481313/hwt45bn6agqbutp7njhr.png",
+    "totalAmountRaised": "",
+    "twitter": "BitcoinMagazine"
+}, {
+    "facebook": "https://www.facebook.com/moneytis",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1453145207/gmieot6oznksfb3roypx.png",
+    "linkedin": "https://www.linkedin.com/company/moneytis",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1432644579/p1pd7dmwbiv8w5rm55de.jpg",
+    "totalAmountRaised": "$54.92k",
+    "twitter": "moneytis"
+}, {
+    "facebook": "http://www.facebook.com/Bitstamp",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1439471876/pccy4hyzsdqydnioz4qu.png",
+    "linkedin": "http://www.linkedin.com/company/bitstamp",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1397751744/a4afe6421406b5560ced5c37b02db1b4.png",
+    "totalAmountRaised": "$10M",
+    "twitter": "Bitstamp"
+}, {
+    "facebook": "http://www.facebook.com/circlebits",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1456692371/sxbx11mqxsg8b7vkmb6m.png",
+    "linkedin": "http://www.linkedin.com/company/3509899",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1400262886/efvbhoibla1tm6aasgmh.png",
+    "totalAmountRaised": "$76M",
+    "twitter": "CircleApp"
+}, {
+    "facebook": "http://www.facebook.com/PayStand",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1402039144/ojzzmvmd0dosgnh4omtx.jpg",
+    "linkedin": "http://www.linkedin.com/company/paystand",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1397753520/390b4dc7497d8b528b944fd2bbe240d0.png",
+    "totalAmountRaised": "$2.3M",
+    "twitter": "paystand"
+}, {
+    "facebook": "https://www.facebook.com/COLUplatform",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1435740513/rb8dzrs2dtj0ratyjefb.jpg",
+    "linkedin": "https://www.linkedin.com/company/colu-co",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1433250888/aryes1xnxrqax20fqloj.png",
+    "totalAmountRaised": "$2.5M",
+    "twitter": "coluplatform"
+}, {
+    "facebook": "",
+    "founder": "",
+    "linkedin": "http://www.linkedin.com/company/bitcoin-investment-trust-bit-",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1412955450/i8i49n7dwdbqizffxcib.png",
+    "totalAmountRaised": "",
+    "twitter": "BitcoinTrust"
+}, {
+    "facebook": "http://www.facebook.com/okcoinbtc",
+    "founder": "/assets/cb-default-image-98x98-ebacd75729c4c3620011e69a21ec8918.png",
+    "linkedin": "http://www.linkedin.com/company/3727679",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1411195790/itjs5tybkqyuospdr0fb.png",
+    "totalAmountRaised": "$10M",
+    "twitter": "okcoinbtc"
+}, {
+    "facebook": "https://www.facebook.com/LedgerHQ",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1424366240/bb0c3h28jk6viupie53i.png",
+    "linkedin": "https://www.linkedin.com/company/ledgerhq",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1424366094/nlky7crj08iv0lze1yi2.png",
+    "totalAmountRaised": "$1.48M",
+    "twitter": "LedgerHQ"
+}, {
+    "facebook": "http://www.facebook.com/ellipticCo",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1397181851/4e4b8b46ec6ba2d6aaff82fcac7efd4a.jpg",
+    "linkedin": "http://www.linkedin.com/company/ellipticCo",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1425288691/ekmye7bercc3scbzww7a.jpg",
+    "totalAmountRaised": "$7M",
+    "twitter": "elliptic"
+}, {
+    "facebook": "http://www.facebook.com/coinzoneinc",
+    "founder": "",
+    "linkedin": "http://www.linkedin.com/company/coinzone",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1401410429/fegjb8z5qala20e8o9fr.png",
+    "totalAmountRaised": "$1.37M",
+    "twitter": "coinzone"
+}, {
+    "facebook": "http://www.facebook.com/coinzoneinc",
+    "founder": "",
+    "linkedin": "http://www.linkedin.com/company/coinzone",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1401410429/fegjb8z5qala20e8o9fr.png",
+    "totalAmountRaised": "$1.37M",
+    "twitter": "coinzone"
+}, {
+    "facebook": "",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1429639176/vcctzgkxuay7uoxszirg.jpg",
+    "linkedin": "https://www.linkedin.com/company/filament-networks",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1429635282/ni6kpcfhke0vvvptohle.png",
+    "totalAmountRaised": "$6.05M",
+    "twitter": "filamenthq"
+}, {
+    "facebook": "https://www.facebook.com/satoshicitadel",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1425290800/xr6pownqabynfz0uvfii.jpg",
+    "linkedin": "https://www.linkedin.com/company/satoshi-citadel-ventures",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1425019953/lsugb7jpsu1equvthdnn.png",
+    "totalAmountRaised": "$100k",
+    "twitter": "satoshi_citadel"
+}, {
+    "facebook": "https://www.facebook.com/airbitz",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1421491053/hvvgcuzkapmopnd8xfip.png",
+    "linkedin": "https://www.linkedin.com/company/3609678",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1420776227/c7w3volwbzdlrs1zqked.png",
+    "totalAmountRaised": "$450k",
+    "twitter": "airbitz"
+}, {
+    "facebook": "http://www.facebook.com/pages/Gliph/115257248576907",
+    "founder": "",
+    "linkedin": "http://www.linkedin.com/company/gliph-inc-",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1427396065/ejbssrcxhdemgskxjzkb.png",
+    "totalAmountRaised": "$393k",
+    "twitter": "gli_ph"
+}, {
+    "facebook": "https://www.facebook.com/airbitz",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1421491053/hvvgcuzkapmopnd8xfip.png",
+    "linkedin": "https://www.linkedin.com/company/3609678",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1420776227/c7w3volwbzdlrs1zqked.png",
+    "totalAmountRaised": "$450k",
+    "twitter": "airbitz"
+}, {
+    "facebook": "http://www.facebook.com/bitex.la",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1397185366/1b766882e2ad4db0a47640c40aa4a6d9.jpg",
+    "linkedin": "https://www.linkedin.com/company/bitex-la",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1421698549/uxqbnw4hhgaeco4nkwtz.jpg",
+    "totalAmountRaised": "$2M",
+    "twitter": "bitexla"
+}, {
+    "facebook": "http://www.facebook.com/bitaccess",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1411461438/fygguw2tkr6g5pv5oeh8.jpg",
+    "linkedin": "http://www.linkedin.com/company/5040823",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1411668948/fryacshuyv8xtcy0z92a.png",
+    "totalAmountRaised": "$11M",
+    "twitter": "BitAccess"
+}, {
+    "facebook": "http://www.facebook.com/coincornercom",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1429612993/f5rbyabm6mhvs9swpyow.jpg",
+    "linkedin": "http://www.linkedin.com/company/coincorner-ltd",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1431099807/kddy6snftxrwseicz93c.png",
+    "totalAmountRaised": "",
+    "twitter": "CoinCorner"
+}, {
+    "facebook": "https://www.facebook.com/pages/Serica/962047983805316?ref=hl",
+    "founder": "/assets/cb-default-image-98x98-ebacd75729c4c3620011e69a21ec8918.png",
+    "linkedin": "https://www.linkedin.com/company/9331056?trk=tyah&trkInfo=idx%3A1-1-1%2CtarId%3A1425864651359%2Ctas%3Aserica+trading",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1425864390/rsiokitt0v3veekofdxq.jpg",
+    "totalAmountRaised": "Undisclosed Amount",
+    "twitter": "digitaltangible"
+}, {
+    "facebook": "https://www.facebook.com/aligncommerce",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1408371785/g2xh0ahkosfsitfi1wry.jpg",
+    "linkedin": "http://www.linkedin.com/company/3674020",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1408370573/kc54hr4usjlptheixd4e.png",
+    "totalAmountRaised": "$12.5M",
+    "twitter": "aligncommerce"
+}, {
+    "facebook": "http://www.facebook.com/volabit",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1397180750/bb13a63f9a7cfade292da7efa30b14d1.png",
+    "linkedin": "https://www.linkedin.com/company/9419987",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1428692838/rtyagqew4ulehsy8mu1t.png",
+    "totalAmountRaised": "$250k",
+    "twitter": "volabit"
+}, {
+    "facebook": "https://www.facebook.com/loanbase",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1409670132/w06xmbb5rbh7tehensb5.png",
+    "linkedin": "https://www.linkedin.com/company/bitlendingclub",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1448490144/f5wphyswcqmrjjji0h1k.png",
+    "totalAmountRaised": "$305.36k",
+    "twitter": "LoanbaseInc"
+}, {
+    "facebook": "http://www.facebook.com/bitwage",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1421489521/bfoasqvcbhjyyas9uztg.png",
+    "linkedin": "http://www.linkedin.com/company/bitwage",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1416005949/o0aq73obcnppkkalhyuy.png",
+    "totalAmountRaised": "$750k",
+    "twitter": "bitwage"
+}, {
+    "facebook": "",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1400738344/f8dawwna6dxfxapkuffb.jpg",
+    "linkedin": "http://www.linkedin.com/company/bitnet-technologies-ltd-?",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1398858619/huxk2p2bf6sicsqsj3q4.png",
+    "totalAmountRaised": "$14.5M",
+    "twitter": "bitnettech"
+}, {
+    "facebook": "http://www.facebook.com/korBTC",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1402818446/edkvu700araxaaprnfai.jpg",
+    "linkedin": "https://www.linkedin.com/company/10153371",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1410945444/ra8uznqd40eumoc6wbc1.png",
+    "totalAmountRaised": "$3.52M",
+    "twitter": "KorbitBTC"
+}, {
+    "facebook": "https://www.facebook.com/cryptocompare",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1450870976/vxyysbxkohtdd07iuutu.jpg",
+    "linkedin": "https://www.linkedin.com/company/10092533",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1450868496/i3nfs0rnegy7vh8u9ja9.png",
+    "totalAmountRaised": "Undisclosed Amount",
+    "twitter": "CryptoCompare"
+}, {
+    "facebook": "",
+    "founder": "",
+    "linkedin": "",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1427249069/uazrk3juceuktbgcffdq.png",
+    "totalAmountRaised": "",
+    "twitter": "NA"
+}, {
+    "facebook": "http://www.facebook.com/krakenfx",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1408696834/l9x4trtwraxha9otrc3e.jpg",
+    "linkedin": "https://www.linkedin.com/company/kraken-exchange",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1447806213/fukfmbydpuecnshatjxx.png",
+    "totalAmountRaised": "$6.5M",
+    "twitter": "Krakenfx"
+}, {
+    "facebook": "https://www.facebook.com/zebpay",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1418301380/nopft2bxe9q6rktpkjmp.png",
+    "linkedin": "https://www.linkedin.com/company/zebpay-pte-ltd",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1418300843/zymf1wrkftfwfmf4whjf.jpg",
+    "totalAmountRaised": "$1.13M",
+    "twitter": "zebpay"
+}, {
+    "facebook": "https://www.facebook.com/shapeshiftexchange/info?tab=page_info",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1442531129/tm2tyhrmirua6qq6kcub.jpg",
+    "linkedin": "",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1437170877/bg12rnoakjwndqm3xlye.png",
+    "totalAmountRaised": "$2.39M",
+    "twitter": "ShapeShift_io"
+}, {
+    "facebook": "https://www.facebook.com/archcoin",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1432454554/xuvldzudc6bxxmfvtv3u.jpg",
+    "linkedin": "",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1432452245/upbwouqmupmhqleckztz.png",
+    "totalAmountRaised": "$328k",
+    "twitter": "archcoin"
+}, {
+    "facebook": "",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1414740407/iojqwjwptr3hirz3zwkc.jpg",
+    "linkedin": "http://www.linkedin.com/company/walletec",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1413007245/duurxidqfs26lqtvpvah.png",
+    "totalAmountRaised": "",
+    "twitter": "WalletTec"
+}, {
+    "facebook": "http://www.facebook.com/joinsnapcard",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1397181438/ab0d336e114d5cd647b57a449bfa5ab9.jpg",
+    "linkedin": "http://www.linkedin.com/company/snapcard",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1410882718/oikylppftommh8t8xko9.png",
+    "totalAmountRaised": "$4.45M",
+    "twitter": "joinsnapcard"
+}, {
+    "facebook": "https://www.facebook.com/surbtc",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1448420736/eybrxjzcs5buakkup6je.png",
+    "linkedin": "https://www.linkedin.com/company/surbtc---exchange-de-bitcoins",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1427065738/ffcxzyvnj5rvwjbqblfv.png",
+    "totalAmountRaised": "$300k",
+    "twitter": "SurBTC"
+}, {
+    "facebook": "http://www.facebook.com/btcxindia",
+    "founder": "/assets/cb-default-image-98x98-ebacd75729c4c3620011e69a21ec8918.png",
+    "linkedin": "http://www.linkedin.com/company/2274725",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1425963267/qsmbzwk80nzj8rkmhius.png",
+    "totalAmountRaised": "Undisclosed Amount",
+    "twitter": "btcxindia"
+}, {
+    "facebook": "",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1403513005/j4uhp59voueuweilk90k.jpg",
+    "linkedin": "http://www.linkedin.com/company/5242706",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1458319612/aosxch0m91dnt3if7vtn.png",
+    "totalAmountRaised": "$3M",
+    "twitter": "SolidXPartners"
+}, {
+    "facebook": "https://www.facebook.com/chain.engineering/",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1410059917/i3ebrmnc7skj62e8swd9.jpg",
+    "linkedin": "",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1441780331/hlljd1ni3eulmzxkmpfc.png",
+    "totalAmountRaised": "$43.7M",
+    "twitter": "chain"
+}, {
+    "facebook": "https://www.facebook.com/OwlTingMarket/?ref=hl",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1409551090/p1tjaowlom9bvye1hwrs.png",
+    "linkedin": "http://www.linkedin.com/company/owlting",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1457812895/qwxy4xxix6nxse9wcus5.jpg",
+    "totalAmountRaised": "$3.13M",
+    "twitter": "owlting"
+}, {
+    "facebook": "https://www.facebook.com/bitsoex",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1449469919/i2pws6kojbnxcqb0opqh.png",
+    "linkedin": "https://www.linkedin.com/company/bitso-sapi-de-cv",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1400172474/rkd4kxqxz15pzjj11q26.jpg",
+    "totalAmountRaised": "Undisclosed Amount",
+    "twitter": "bitsoex"
+}, {
+    "facebook": "http://www.facebook.com/OpenBazaarProject",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1397181665/56574c9dab56ab31d85aca7d732438a4.jpg",
+    "linkedin": "http://www.linkedin.com/company/5309520",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1457118072/vedz3ixsck0faphslyge.png",
+    "totalAmountRaised": "$1M",
+    "twitter": "openbazaar"
+}, {
+    "facebook": "https://www.facebook.com/pages/Onename/565352493563458",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1453996371/cg6aylfhkdlhs30etre5.jpg",
+    "linkedin": "https://www.linkedin.com/company/onename",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1433953119/xunjs5yye9qqzb4osnxm.png",
+    "totalAmountRaised": "$1.45M",
+    "twitter": "onename"
+}, {
+    "facebook": "http://www.facebook.com/bitcoin.co.id",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1423759091/vbpf5z5vp7qskd33p7mt.jpg",
+    "linkedin": "https://www.linkedin.com/company/bitcoin-co-id---bitcoin-indonesia",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1423759590/ltbbuxyj4glbtpt2tc59.jpg",
+    "totalAmountRaised": "$50k",
+    "twitter": "bitcoincoid"
+}, {
+    "facebook": "https://www.facebook.com/tabtrader",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1423810063/zij5nkwhnlt5jx5wqvk3.jpg",
+    "linkedin": "https://www.linkedin.com/company/tabtrader",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1432126648/ljoi0yznpslnibgqjfiv.jpg",
+    "totalAmountRaised": "$183.29k",
+    "twitter": "tabtraderbtc"
+}, {
+    "facebook": "https://www.facebook.com/yacunaltd",
+    "founder": "/assets/cb-default-image-98x98-ebacd75729c4c3620011e69a21ec8918.png",
+    "linkedin": "",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1403802430/k0tcfm7jlrsj8jusuepp.png",
+    "totalAmountRaised": "",
+    "twitter": "yacunaltd"
+}, {
+    "facebook": "https://www.google.com/url?sa=t&rct=j&q=&esrc=s&source=web&cd=2&cad=rja&uact=8&sqi=2&ved=0CCUQFjAB&url=https%3A%2F%2Fwww.facebook.com%2Fgowiper&ei=BhUUVbv-O-LOygPIlYDQDQ&usg=AFQjCNEKRZljDBRSO20f1BMG4Yl8yVuIww",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1405436813/xxfzvh21ohlzoejsqyfr.jpg",
+    "linkedin": "https://www.linkedin.com/company/wiper-inc-?trk=company_logo",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1405360911/j7y7xv0l8yo3k94owfk4.png",
+    "totalAmountRaised": "$4.5M",
+    "twitter": "gowiper"
+}, {
+    "facebook": "",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1440117954/mjv4rin0hnnl5kwlxqfr.jpg",
+    "linkedin": "https://www.linkedin.com/company/wealthcoin",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1444531239/vtq6xnjxthbycnjtpwzp.png",
+    "totalAmountRaised": "Undisclosed Amount",
+    "twitter": "getkeza"
+}, {
+    "facebook": "https://www.facebook.com/www.simplex.cc",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1427032635/pdf6wzoz4afwk8qbx8hz.png",
+    "linkedin": "https://www.linkedin.com/company/simplexcc",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1426777277/fvdg0mnb7cdbwlrxjfk7.png",
+    "totalAmountRaised": "$8M",
+    "twitter": "simplexcc"
+}, {
+    "facebook": "https://es-es.facebook.com/BitPagos",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1403086162/r0wkhmli6t8ndlptpv1k.jpg",
+    "linkedin": "https://www.linkedin.com/company/bitpagos",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1397182142/e98d55af51f578300f1137968d7bb56a.png",
+    "totalAmountRaised": "$1.83M",
+    "twitter": "BitPagos"
+}, {
+    "facebook": "http://www.facebook.com/pages/Onetraction/1405784773014394",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1425122198/hiwjbjeimflxvfabyujg.png",
+    "linkedin": "http://www.linkedin.com/company/onetraction",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1429199289/dlweq0881jxtdjrflpbx.png",
+    "totalAmountRaised": "",
+    "twitter": "OneTraction"
+}, {
+    "facebook": "https://www.facebook.com/pages/Palarin/1019591118066420?ref=bookmarks",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1421412509/etdhn6mjtlmy6i5tw0tv.png",
+    "linkedin": "",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1421411941/ngda3w4hfdlyxqfowubf.png",
+    "totalAmountRaised": "",
+    "twitter": "Palarin_Inc"
+}, {
+    "facebook": "https://www.facebook.com/clipperz",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1412155733/yg4lhteuq4v5cgtf96yw.jpg",
+    "linkedin": "https://www.linkedin.com/company/clipperz",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1453202397/b28wcvmirafk2za2rl37.jpg",
+    "totalAmountRaised": "$110.18k",
+    "twitter": "clipperz"
+}, {
+    "facebook": "http://www.facebook.com/cliqstart",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1412725054/kbal7arvn04th51tmizz.png",
+    "linkedin": "http://www.linkedin.com/company/cliqstart",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1397192039/ffc46a057aa53153d530fd8a8aef2347.png",
+    "totalAmountRaised": "",
+    "twitter": "Cliq_Start"
+}, {
+    "facebook": "http://www.facebook.com/ascribeio",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1414675628/o9zl9tzjod0t12zvop0w.jpg",
+    "linkedin": "https://www.linkedin.com/company/ascribe-gmbh",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1447425610/zz6lwjt5mltkenb5pygy.jpg",
+    "totalAmountRaised": "$2M",
+    "twitter": "ascribeIO"
+}, {
+    "facebook": "https://www.facebook.com/bitnexo",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1426787649/c00vuztrbedp875fx0pd.png",
+    "linkedin": "https://www.linkedin.com/company/bitnexo",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1426773140/ztv6olo6gdrf6yjfd0pz.jpg",
+    "totalAmountRaised": "$30k",
+    "twitter": "BitNexo"
+}, {
+    "facebook": "https://www.facebook.com/augurproject/info?tab=page_info",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1410245083/drwswdkurymg69wenani.png",
+    "linkedin": "https://www.linkedin.com/company/augur-net",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1428363449/lcgweofkqru9rshqreoh.png",
+    "totalAmountRaised": "$4.7M",
+    "twitter": "augurproject"
+}, {
+    "facebook": "http://www.facebook.com/37coins",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1399677343/esymzm67c61iwq9i6hnm.jpg",
+    "linkedin": "http://www.linkedin.com/company/5178970",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1401434126/svmbttirxrhcimps1hnw.jpg",
+    "totalAmountRaised": "$525k",
+    "twitter": "37coins"
+}, {
+    "facebook": "",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1399463347/j3v45br5qjvbwug0dulp.jpg",
+    "linkedin": "https://www.linkedin.com/company/vaurum",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1416126129/vv8desnaaouxbpzndpdv.png",
+    "totalAmountRaised": "$12.8M",
+    "twitter": "mirrorhq"
+}, {
+    "facebook": "http://www.facebook.com/mobbrcom",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1397188168/af08a7c8a45d8dbea59634096266ed1a.png",
+    "linkedin": "http://www.linkedin.com/company/mobbr-micropayments",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1397185233/46af40b2894706bcaa6d2e5a481f76ef.jpg",
+    "totalAmountRaised": "$1.22M",
+    "twitter": "mobbrcom"
+}, {
+    "facebook": "http://www.facebook.com/shiftpayments",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1455308770/u7xvofbgzzkgvslp2fwb.jpg",
+    "linkedin": "http://www.linkedin.com/company/shift-payments",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1455308850/ql4hrklycw2xi3q5phjl.jpg",
+    "totalAmountRaised": "$2.2M",
+    "twitter": "ShiftPayments"
+}, {
+    "facebook": "https://www.facebook.com/dunveganspace",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1426660172/x56cr6tkz2fd1vdptd00.jpg",
+    "linkedin": "",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1426570325/gixfsnbd6pjohrevrbev.jpg",
+    "totalAmountRaised": "",
+    "twitter": "DunveganSpace"
+}, {
+    "facebook": "http://www.facebook.com/PurseIO",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1436313069/tajgnd1eglzuw7gycpwa.jpg",
+    "linkedin": "http://www.linkedin.com/company/purseio",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1453829970/esoiv2ifku6lvhnbjsx3.png",
+    "totalAmountRaised": "$1.3M",
+    "twitter": "purseio"
+}, {
+    "facebook": "https://www.facebook.com/ihbio",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1439351869/bcb1sbz4i4g46vx2uui9.png",
+    "linkedin": "https://www.linkedin.com/company/i-have-bitcoins?trk=parent_company_logo",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1422338896/dnh4jzrfqhdnehfuqieo.jpg",
+    "totalAmountRaised": "",
+    "twitter": "ihbio"
+},
+ {
+    "facebook": "http://www.facebook.com/monetsutech",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1397187303/b841c64065af2f9184bc3559d490f167.jpg",
+    "linkedin": "http://www.linkedin.com/company/monetsu",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1398882016/iug4bk7vsxesnrmohcne.jpg",
+    "totalAmountRaised": "$300k",
+    "twitter": "monetsutech"
+}, {
+    "facebook": "http://www.facebook.com/gatecoin",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1425447546/ll7yrawwqy4w0opnkgnk.jpg",
+    "linkedin": "http://www.linkedin.com/company/gatecoin",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1416376514/scpfehzifup0xu5jud1e.png",
+    "totalAmountRaised": "$500k",
+    "twitter": "Gatecoin"
+}, {
+    "facebook": "http://www.facebook.com/tryhoneybadgr",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1409121344/xy3dzvfqqp84yke67ruc.jpg",
+    "linkedin": "http://www.linkedin.com/company/honeybadgr",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1407909241/ht7tlvwv9mklvxnqy57y.png",
+    "totalAmountRaised": "",
+    "twitter": "tryhoneybadgr"
+}, {
+    "facebook": "http://www.facebook.com/BitsparkBTC",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1429008642/jeyp5rom3fbyemrnm2ua.jpg",
+    "linkedin": "http://www.linkedin.com/company/bitspark-limited",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1407497626/kcb1eisoq4jp3wjwszvx.png",
+    "totalAmountRaised": "$41.25k",
+    "twitter": "BitsparkBTC"
+}, {
+    "facebook": "https://www.facebook.com/CubitsBTC",
+    "founder": "",
+    "linkedin": "https://www.linkedin.com/company/cubits?trk=company_logo",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1437147609/mmssay5z0slh7rqeiyjx.jpg",
+    "totalAmountRaised": "",
+    "twitter": "CubitsBTC"
+}, {
+    "facebook": "https://www.facebook.com/qcoin",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1402518550/fbe5672cme3nt8nttw5g.jpg",
+    "linkedin": "https://www.linkedin.com/company/quickcoin",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1457738182/gopschnbcaxk1kxfyjqp.png",
+    "totalAmountRaised": "$547k",
+    "twitter": "blockai"
+}, {
+    "facebook": "https://www.facebook.com/imagineorb/",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1415923352/udkht958fvcht7wgu6fn.jpg",
+    "linkedin": "https://www.linkedin.com/company/coinpass-inc",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1443672486/wkw2uvhual4qzmihqx7j.jpg",
+    "totalAmountRaised": "$2.8M",
+    "twitter": "imagineorb"
+}, {
+    "facebook": "http://www.facebook.com/blocktrail",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1430082473/lnc2izmf0hvbddtplhj6.jpg",
+    "linkedin": "http://www.linkedin.com/company/blocktrail-b-v-",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1442251952/ljca7x8zmgalg7raiees.jpg",
+    "totalAmountRaised": "$669.21k",
+    "twitter": "blocktrail"
+}, {
+    "facebook": "http://www.facebook.com/HedgyInc",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1441393493/ludhqsrmee2cznlp5zky.png",
+    "linkedin": "http://www.linkedin.com/company/hedgy",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1408953139/m7pmp5ykiqtamli3p1gx.png",
+    "totalAmountRaised": "$1.2M",
+    "twitter": "goHedgy"
+}, {
+    "facebook": "https://www.facebook.com/coincube.io",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1430908490/q0tvbxdakeipgzfk8vep.jpg",
+    "linkedin": "https://www.linkedin.com/company/coin_cube",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1443749030/nnamp7vxq0ta6smdru9l.png",
+    "totalAmountRaised": "",
+    "twitter": "coincube"
+}, {
+    "facebook": "http://www.facebook.com/coinalytics",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1409141595/usnbl2onqip4cxpnvmot.jpg",
+    "linkedin": "http://www.linkedin.com/company/coinalytics",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1442055142/rflbi8z8fn1xengziepx.png",
+    "totalAmountRaised": "$1.3M",
+    "twitter": "coinalytics"
+}, {
+    "facebook": "",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1429876060/jrpjkrggao9onxn3a4uc.jpg",
+    "linkedin": "",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1407835413/bj1pmku4bcfs8brixoz9.png",
+    "totalAmountRaised": "$1.5M",
+    "twitter": "NA"
+}, {
+    "facebook": "http://www.facebook.com/coinmkt",
+    "founder": "/assets/cb-default-image-98x98-ebacd75729c4c3620011e69a21ec8918.png",
+    "linkedin": "http://www.linkedin.com/company/3153806",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1398247540/wkyrtuszxhw7p0mnvojb.png",
+    "totalAmountRaised": "",
+    "twitter": "coinmkt"
+}, {
+    "facebook": "http://www.facebook.com/qcoin",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1402518550/fbe5672cme3nt8nttw5g.jpg",
+    "linkedin": "http://www.linkedin.com/company/quickcoin",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1408006364/vspyv7lfgw4gun2ychyz.jpg",
+    "totalAmountRaised": "$50k",
+    "twitter": "quickcoinco"
+}, {
+    "facebook": "http://www.facebook.com/bitsiecom",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1404660562/mctvqjn8jfou0qbuyoha.jpg",
+    "linkedin": "",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1404659369/ubyisfc5qak0y5i36rga.png",
+    "totalAmountRaised": "",
+    "twitter": "bitsiecom"
+}, {
+    "facebook": "http://www.facebook.com/CounterpartyXCP",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1415253229/o6nzsnujd4rn99262trl.png",
+    "linkedin": "http://www.linkedin.com/company/3644957",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1415252552/gegbsumbshkejsfk7rjd.png",
+    "totalAmountRaised": "",
+    "twitter": "CounterpartyXCP"
+}, {
+    "facebook": "https://www.facebook.com/casewallet",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1416237157/mf20z6drzjsqs4jfpizs.jpg",
+    "linkedin": "https://www.linkedin.com/company/case-wallet-inc",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1430429696/seymfkyggkvv84d5q2hw.png",
+    "totalAmountRaised": "$2.25M",
+    "twitter": "CaseWallet"
+}, 
+{
+    "facebook": "https://www.facebook.com/MidasRezerv",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1441008376/uaamvf86jwrjnkdrfbof.jpg",
+    "linkedin": "https://www.linkedin.com/in/alexilane",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1456251251/tvqlrm3fy5lzdyaoaxtk.png",
+    "totalAmountRaised": "",
+    "twitter": "MidasRezerv"
+}, {
+    "facebook": "",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1410844005/uayfqxjzqlq8wryaa7ge.jpg",
+    "linkedin": "",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1410843716/ggiyiohckkh3cvqptdrk.jpg",
+    "totalAmountRaised": "$1.01M",
+    "twitter": "swarmcorp"
+}, {
+    "facebook": "http://www.facebook.com/satoshicitadel",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1425290800/xr6pownqabynfz0uvfii.jpg",
+    "linkedin": "https://www.linkedin.com/company/3661016?trk=tyah&trkInfo=clickedVertical%3Acompany%2Cidx%3A1-1-1%2CtarId%3A1427083131153%2Ctas%3ABitmarket.ph",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1427083350/o3ogkyjsfpswjymwj0m1.jpg",
+    "totalAmountRaised": "",
+    "twitter": "bitmarketph"
+}, {
+    "facebook": "",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1410844005/uayfqxjzqlq8wryaa7ge.jpg",
+    "linkedin": "",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1410843716/ggiyiohckkh3cvqptdrk.jpg",
+    "totalAmountRaised": "$1.01M",
+    "twitter": "swarmcorp"
+}, {
+    "facebook": "",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1410844005/uayfqxjzqlq8wryaa7ge.jpg",
+    "linkedin": "",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1410843716/ggiyiohckkh3cvqptdrk.jpg",
+    "totalAmountRaised": "$1.01M",
+    "twitter": "swarmcorp"
+}, {
+    "facebook": "http://www.facebook.com/altoptions",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1448535706/rgvfeht8ybebnebudlbp.jpg",
+    "linkedin": "http://www.linkedin.com/company/3690698",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1411228951/ngs9kmhyrgxqopqv5z6y.png",
+    "totalAmountRaised": "",
+    "twitter": "AltOptionsLLC"
+}, {
+    "facebook": "https://www.facebook.com/coinspacewallet/?ref=hl",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1426041191/tsog3mdgau4btbsmidk5.jpg",
+    "linkedin": "",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1426042228/qyic3rwb8hyk5u7r9vd9.png",
+    "totalAmountRaised": "Undisclosed Amount",
+    "twitter": "coin_space"
+}, {
+    "facebook": "https://www.facebook.com/FoldBitcoin/",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1397754910/8cd8935e75b8e2adb850890d6cda1a86.jpg",
+    "linkedin": "",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1449278325/qcpuzf2iteya4ybigirt.png",
+    "totalAmountRaised": "",
+    "twitter": "fold_app"
+}, {
+    "facebook": "http://www.facebook.com/bitflyer/info",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1411644019/xbh1lyahnb8mmyu40vcb.jpg",
+    "linkedin": "http://www.linkedin.com/company/3963967",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1406089573/bup2rz90gze5zckzvb4c.png",
+    "totalAmountRaised": "$7.36M",
+    "twitter": "bitFlyer"
+}, {
+    "facebook": "http://www.facebook.com/neuroware",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1430213069/qgbwnmr0ogwkxczdwkn3.png",
+    "linkedin": "",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1408715471/sfuoloyddlzx8pejyzch.png",
+    "totalAmountRaised": "$100k",
+    "twitter": "neurowareio"
+}, {
+    "facebook": "http://www.facebook.com/buyanycoin",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1427171610/h8o7g8rycze0aa64l4eq.png",
+    "linkedin": "",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1426384224/sw1brbrx3xxadl9mrwm0.jpg",
+    "totalAmountRaised": "",
+    "twitter": "buyanycoin"
+}, {
+    "facebook": "http://www.facebook.com/TradeBlock/1408862816057328",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1406551269/zwogb5mntovuwptvbnyt.jpg",
+    "linkedin": "http://hu.linkedin.com/company/tradeblock",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1424793941/v49m86mwayfgjmrb3wk3.png",
+    "totalAmountRaised": "$2.8M",
+    "twitter": "TradeBlock"
+}, {
+    "facebook": "http://www.facebook.com/coinbatch",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1409825918/h8s2ixbkk5qhicfptn04.jpg",
+    "linkedin": "",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1408397506/phlvfqkfar4diq8f3rey.png",
+    "totalAmountRaised": "",
+    "twitter": "coinbatch"
+}, {
+    "facebook": "http://www.facebook.com/blockcypher",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1401337470/xv6h0busgql0s9b5voia.jpg",
+    "linkedin": "",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1440134590/f8afwzrggd61ohefrkg8.png",
+    "totalAmountRaised": "$3.5M",
+    "twitter": "BlockCypher"
+}, {
+    "facebook": "http://www.facebook.com/GogoCoin",
+    "founder": "/assets/cb-default-image-98x98-ebacd75729c4c3620011e69a21ec8918.png",
+    "linkedin": "http://www.linkedin.com/company/gogocoin",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1412956008/mbnayfvytfiaodcfd0uq.png",
+    "totalAmountRaised": "$105k",
+    "twitter": "gogocoin"
+}, {
+    "facebook": "http://www.facebook.com/GogoCoin",
+    "founder": "/assets/cb-default-image-98x98-ebacd75729c4c3620011e69a21ec8918.png",
+    "linkedin": "http://www.linkedin.com/company/gogocoin",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1412956008/mbnayfvytfiaodcfd0uq.png",
+    "totalAmountRaised": "$105k",
+    "twitter": "gogocoin"
+}, {
+    "facebook": "https://www.facebook.com/litebiteu/?ref=hl",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1458429794/spzif3dkia45pb3inp16.jpg",
+    "linkedin": "",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1458427133/aybkayxqucxhpj0c6jig.png",
+    "totalAmountRaised": "Undisclosed Amount",
+    "twitter": "litebiteu"
+}, {
+    "facebook": "http://www.facebook.com/Predictious",
+    "founder": "",
+    "linkedin": "",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1397184176/5a10bca3e523491bbba6c3841e4c54c9.png",
+    "totalAmountRaised": "",
+    "twitter": "Predictious"
+}, {
+    "facebook": "http://www.facebook.com/pages/Matrixvision/209257952590147",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1433917814/hh0xwz7wqbz8bmtjlcty.png",
+    "linkedin": "",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1407987519/flsveys2o7cnxuv37exu.png",
+    "totalAmountRaised": "$220k",
+    "twitter": "MatrixVisionBTC"
+}, {
+    "facebook": "",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1443007424/oqgibnutysjm2wzr3cpr.jpg",
+    "linkedin": "",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1409524243/minhkumal6pkwf98c6ap.png",
+    "totalAmountRaised": "$459.73k",
+    "twitter": "SatoshiPay"
+}, {
+    "facebook": "https://www.facebook.com/Quoine.sg",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1445238619/upqrabt6ww4q4d9opse0.jpg",
+    "linkedin": "",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1418219897/ngcny4fc8nonvau8tp3x.png",
+    "totalAmountRaised": "$2M",
+    "twitter": "quoinexchange"
+}, {
+    "facebook": "http://www.facebook.com/coinplug",
+    "founder": "/assets/cb-default-image-98x98-ebacd75729c4c3620011e69a21ec8918.png",
+    "linkedin": "",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1430996746/jq3unui9dh4tq8nl58tn.png",
+    "totalAmountRaised": "$8.3M",
+    "twitter": "coinplug"
+}, {
+    "facebook": "",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1429888495/ac1sulcnjkvcxbc5pgkk.jpg",
+    "linkedin": "",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1416029129/mcbutalfrn5o1lxh6wlu.png",
+    "totalAmountRaised": "$695k",
+    "twitter": "hashrabbitco"
+}, {
+    "facebook": "http://www.facebook.com/BitcoinBrothersGermany",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1397755561/b5fbe41d5dc5feedbb171f6e87452c5e.jpg",
+    "linkedin": "",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1397755344/631716c889bad721655550c4602de16b.png",
+    "totalAmountRaised": "$394.1k",
+    "twitter": "BitcoinBrothers"
+}, {
+    "facebook": "http://www.facebook.com/bonafide.io",
+    "founder": "/assets/cb-default-image-98x98-ebacd75729c4c3620011e69a21ec8918.png",
+    "linkedin": "",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1459175885/sg3kjqbsr3xfbgs1mbl8.jpg",
+    "totalAmountRaised": "$950k",
+    "twitter": "bonafideio"
+}, {
+    "facebook": "https://www.facebook.com/pages/digitalBTC/678645025514082",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1424237061/jhhq5hmlrbrojds593ja.png",
+    "linkedin": "",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1424237564/yfxszragqfcnqsjm5yk4.png",
+    "totalAmountRaised": "$2.76M",
+    "twitter": "digitalBTC"
+}, {
+    "facebook": "https://www.facebook.com/coinfinitygmbh",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1432472749/vgmxdncjgbbfwax2rtyh.jpg",
+    "linkedin": "",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1432455335/n8e09crzfowaus21ecwn.png",
+    "totalAmountRaised": "",
+    "twitter": "NA"
+}, {
+    "facebook": "https://www.facebook.com/bittdigital/timeline?ref=page_internal",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1427690991/rpdvptqe5fpsfteqfe7r.png",
+    "linkedin": "",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1427690531/abbvtczdqxgx4fgqp0kg.png",
+    "totalAmountRaised": "$1.5M",
+    "twitter": "bittdigital"
+}, {
+    "facebook": "http://www.facebook.com/bitbank.inc",
+    "founder": "",
+    "linkedin": "",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1416208416/tdth7x6hmnsp61jesaxg.png",
+    "totalAmountRaised": "$1.92M",
+    "twitter": "bitbank_PR"
+}, {
+    "facebook": "https://www.facebook.com/ElectrumWallet",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1439809412/pxoz18hf5cyjf0wndure.jpg",
+    "linkedin": "",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1438932556/mwx57rfrlrvwmx8e2cuy.png",
+    "totalAmountRaised": "",
+    "twitter": "ElectrumWallet"
+}, 
+{
+    "facebook": "https://www.facebook.com/ElectrumWallet",
+    "founder": "https://crunchbase-production-res.cloudinary.com/image/upload/c_thumb,g_face,h_98,w_98/v1439809412/pxoz18hf5cyjf0wndure.jpg",
+    "linkedin": "",
+    "logo": "https://crunchbase-production-res.cloudinary.com/image/upload/c_pad,h_140,w_140/v1438932556/mwx57rfrlrvwmx8e2cuy.png",
+    "totalAmountRaised": "",
+    "twitter": "ElectrumWallet"
+}
+]
+
+var formattedData = []
+// for (var i = startups.length - 1; i >= 0; i--) {
+//     if(startups[i]["twitter"] == ""){
+//         startups[i]["twitter"] = "NA" 
+//     }
+//     var url = "https://cryptopages.firebaseio.com/tData/" + startups[i]["twitter"]
+//     console.log(url);
+//     exampleRef = new Firebase(url)
+//     exampleRef.set(startups[i])
+//     console.log("https://cryptopages.firebaseio.com/tData/" + startups[i]["twitter"]);
+// }
+var CronJob = require('cron').CronJob;
+new CronJob('*/6 * * * * *', function() {
+  console.log('You will see this message every second');
+      console.log(startups.length);
+      currentStartup = startups.slice(-1)[0]
+      var username = currentStartup["twitter"]
+      username != "" ? getTwtiterData(username) : console.log("No twitter for " + currentStartup);
+      startups.pop()
+      console.log(startups.length);
+}, null, true, 'America/Los_Angeles');
+function getTwtiterData(username) {
+    var url = "https://cryptopages.firebaseio.com/tData/" + username + "/twitterData"
+    exampleRef = new Firebase(url)
+    T.get('users/show', { screen_name: username },  function (err, data, response) {
+         exampleRef.set(data)
+         console.log(url);
+    })
+}
